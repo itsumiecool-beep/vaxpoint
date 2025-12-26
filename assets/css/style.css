@@ -1,0 +1,329 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=Playfair+Display:wght@600&display=swap');
+
+body {
+    background: white;
+    font-family: 'Inter', sans-serif;
+    color: #1f2d3d;
+}
+
+/* ================= NAVBAR ================= */
+.navbar {
+    height: 80px;
+    padding: 0 140px 0 50px; /* extra right spacing for moon */
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #f5fbff;
+    position: relative;
+    z-index: 10;
+}
+
+/* LEFT LOGO AREA */
+.nav-left {
+    display: flex;
+    align-items: center;
+    z-index: 20; /* ensures logo always above background */
+}
+
+.logo-img {
+    width: 42px;   /* slightly bigger */
+    height: auto;
+    margin-right: 10px;
+}
+
+.logo-text {
+    font-family: 'Playfair Display', serif;
+    font-size: 26px;
+    font-weight: 600;
+    color: #1f2d3d;
+}
+
+/* NAV LINKS */
+.nav-links {
+    display: flex;
+    align-items: center;
+}
+
+
+.nav-links a {
+    margin-left: 30px;
+    text-decoration: none;
+    color: #1f2d3d;
+    font-weight: 500;
+    position: relative;
+}
+
+/* COOL HOVER UNDERLINE EFFECT */
+.nav-links a::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    bottom: -6px;
+    width: 0;
+    height: 2px;
+    background: #4da6ff;
+    transition: width 0.3s ease;
+}
+
+.nav-links a:hover::after {
+    width: 100%;
+}
+
+
+/* MOBILE */
+.menu-toggle {
+    display: none;
+    font-size: 26px;
+}
+
+/* FLOATING MOON */
+.navbar {
+    height: 80px;
+    padding: 0 120px 0 50px; /* EXTRA RIGHT SPACE */
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #f5fbff;
+    position: relative;
+    z-index: 10;
+}
+
+/* FIXED MOON */
+.moon {
+    position: absolute;
+    right: -90px; /* PUSH FURTHER OUT */
+    top: 10px;
+    width: 130px;
+    height: 130px;
+    background: #fff3c4;
+    border-radius: 50%;
+    box-shadow: -25px 0 0 #f5fbff;
+    animation: float 6s ease-in-out infinite;
+    z-index: 1; /* BELOW NAV LINKS */
+    pointer-events: none; /* 👈 VERY IMPORTANT */
+}
+
+
+@keyframes float {
+    0%,100% { transform: translateY(0); }
+    50% { transform: translateY(-12px); }
+}
+
+/* ================= HERO ================= */
+.hero {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 100px 80px;
+}
+
+.hero-text {
+    width: 55%;
+}
+
+.hero-text h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: 54px;
+}
+
+.hero-text span {
+    color: #4da6ff;
+}
+
+.hero-text p {
+    margin-top: 25px;
+    font-size: 18px;
+    line-height: 1.8;
+}
+
+/* ================= SIDE MINI CAROUSEL ================= */
+.side-carousel {
+    width: 35%;
+    background: #f9fcff;
+    padding: 20px;
+    border-radius: 20px;
+    box-shadow: 0 15px 35px rgba(0,0,0,0.08);
+    overflow: hidden;
+}
+
+.carousel-track {
+    display: flex;
+    transition: transform 0.6s ease;
+}
+
+.carousel-item {
+    min-width: 100%;
+    text-align: center;
+}
+
+.carousel-item img {
+    width: 100%;
+    height: 220px;
+    object-fit: cover;
+    border-radius: 16px;
+}
+
+.carousel-item p {
+    margin-top: 15px;
+    font-weight: 500;
+}
+
+/* ================= RESPONSIVE ================= */
+@media (max-width: 900px) {
+    .hero {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .hero-text, .side-carousel {
+        width: 100%;
+    }
+
+    .nav-links {
+        display: none;
+        position: absolute;
+        right: 0;
+        top: 80px;
+        flex-direction: column;
+        background: #f5fbff;
+        width: 200px;
+    }
+
+    .menu-toggle {
+        display: block;
+    }
+}
+.features {
+    padding: 90px 80px;
+    text-align: center;
+}
+
+.features h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 40px;
+    margin-bottom: 50px;
+}
+
+.feature-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 30px;
+}
+
+.feature-card {
+    background: white;
+    padding: 30px;
+    border-radius: 18px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.07);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.feature-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 25px 45px rgba(0,0,0,0.12);
+}
+.stats {
+    padding: 80px;
+    display: flex;
+    justify-content: space-around;
+    background: #f9fcff;
+}
+
+.stat h3 {
+    font-size: 46px;
+    color: #4da6ff;
+}
+
+.stat p {
+    margin-top: 10px;
+    font-weight: 500;
+}
+.feature-card, .stat {
+    opacity: 0;
+    transform: translateY(30px);
+    transition: all 0.6s ease;
+}
+.footer {
+    background: #f5fbff;
+    padding: 90px 80px 30px;
+    margin-top: 100px;
+}
+
+.footer-container {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 50px;
+}
+
+.footer-logo {
+    font-size: 32px;
+    font-family: 'Playfair Display', serif;
+    color: #4da6ff;
+    margin-bottom: 20px;
+}
+
+.footer-col h3 {
+    margin-bottom: 20px;
+}
+
+.footer ul {
+    list-style: none;
+}
+
+.footer ul li {
+    margin-bottom: 12px;
+}
+
+.footer ul li a {
+    text-decoration: none;
+    color: #555;
+}
+
+.footer ul li a:hover {
+    color: #4da6ff;
+}
+
+/* Newsletter */
+.newsletter {
+    display: flex;
+    margin-top: 15px;
+}
+
+.newsletter input {
+    flex: 1;
+    padding: 12px;
+    border-radius: 8px 0 0 8px;
+    border: 1px solid #ddd;
+}
+
+.newsletter button {
+    padding: 12px 18px;
+    background: #4da6ff;
+    color: white;
+    border: none;
+    border-radius: 0 8px 8px 0;
+    cursor: pointer;
+}
+
+/* Social icons */
+.social-icons {
+    margin-top: 20px;
+    display: flex;
+    gap: 15px;
+}
+
+.social-icons span {
+    background: white;
+    padding: 10px;
+    border-radius: 50%;
+    cursor: pointer;
+}
+
+.footer-bottom {
+    margin-top: 50px;
+    padding-top: 20px;
+    text-align: center;
+    border-top: 1px solid #ddd;
+    color: #777;
+}
+
