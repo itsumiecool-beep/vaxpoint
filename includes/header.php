@@ -18,10 +18,8 @@
 
     <!-- MENU -->
     <div class="nav-links" id="navLinks">
-        <a href="index.php">Home</a>
-        <a href="auth/parent_login.php">Parent</a>
-        <a href="auth/hospital_login.php">Hospital</a>
-        <a href="auth/admin_login.php">Admin</a>
+        <a href="index.php">Home</a>>
+        <a href="login.php">Log-In</a>
     </div>
 
     <!-- MOBILE ICON -->
