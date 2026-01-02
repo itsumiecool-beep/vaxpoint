@@ -27,7 +27,6 @@ body {
 .nav-left {
     display: flex;
     align-items: center;
-    gap: 12px;
 }
 
 .logo-img {
@@ -45,7 +44,7 @@ body {
 .nav-links {
     display: flex;
     align-items: center;
-    gap: 30px;
+    gap: 5px;
 }
 
 .nav-links a {
@@ -54,7 +53,7 @@ body {
     font-weight: 500;
     font-size: 15px;
     position: relative;
-    padding: 6px 0;
+    padding: 6px 20px;
 }
 
 .nav-links a::after {

@@ -108,7 +108,7 @@ a{text-decoration:none;color:inherit;}
     <span>e-Vaccination</span>
     <div>
         <a href="#">Dashboard</a>
-        <a href="logout.php">Logout</a>
+        <a href="../auth/logout.php">Logout</a>
     </div>
 </div>
 
