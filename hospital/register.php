@@ -1,194 +1,266 @@
 <?php
-include("../config/db.php");
+require_once '../config/config.php';
 
-$error = "";
-$success = "";
+if (isLoggedIn('hospital')) {
+    redirect('dashboard.php');
+}
 
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
+$errors = [];
 
-    $hospital_name = trim($_POST['hospital_name']);
-    $address = trim($_POST['address']);
-    $location = trim($_POST['location']);
-    $email = trim($_POST['email']);
-    $password = password_hash($_POST['password'], PASSWORD_DEFAULT);
-
-    // Check if email already exists
-    $stmt = $conn->prepare("SELECT * FROM hospital WHERE email = ?");
-    $stmt->execute([$email]);
-    $existing = $stmt->fetch();
-
-    if ($existing) {
-        $error = "Email already registered.";
-    } else {
-        $sql = "INSERT INTO hospital (hospital_name,address,location,email,password) 
-                VALUES (?, ?, ?, ?, ?)";
-        $stmt = $conn->prepare($sql);
-
-        if ($stmt->execute([$hospital_name, $address, $location, $email, $password])) {
-            $success = "Hospital registered successfully! You can now <a href='../auth/hospital_login.php'>login</a>.";
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $hospital_name = sanitize($_POST['hospital_name'] ?? '');
+    $email = sanitize($_POST['email'] ?? '');
+    $password = $_POST['password'] ?? '';
+    $confirm_password = $_POST['confirm_password'] ?? '';
+    $address = sanitize($_POST['address'] ?? '');
+    $location = sanitize($_POST['location'] ?? '');
+    
+    // Validate
+    $data = $_POST;
+    $data['name'] = $hospital_name;
+    $validation = validateRegistration($data, 'hospital');
+    
+    if ($validation['valid']) {
+        $db = new Database();
+        $conn = $db->getConnection();
+        
+        // Check if email already exists
+        $stmt = $conn->prepare("SELECT hospital_id FROM hospital WHERE email = ?");
+        $stmt->execute([$email]);
+        
+        if ($stmt->rowCount() > 0) {
+            $errors[] = 'Email already registered';
         } else {
-            $error = "Something went wrong. Please try again.";
+            // Insert new hospital
+            $hashed_password = password_hash($password, PASSWORD_DEFAULT);
+            $stmt = $conn->prepare("INSERT INTO hospital (hospital_name, email, password, address, location, status) VALUES (?, ?, ?, ?, ?, 'Active')");
+            
+            if ($stmt->execute([$hospital_name, $email, $hashed_password, $address, $location])) {
+                setFlashMessage('success', 'Registration successful! Please login.');
+                redirect('login.php');
+            } else {
+                $errors[] = 'Registration failed. Please try again.';
+            }
         }
+    } else {
+        $errors = $validation['errors'];
     }
 }
 ?>
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Hospital Registration - VaxPoint</title>
-
-<style>
-  body, html {
-    margin: 0; padding: 0;
-    height: 100%;
-    font-family: 'Inter', sans-serif;
-    background: linear-gradient(135deg, #0a2540, #1fc8b8);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    color: #e6f1ff;
-  }
-
-  .register-form {
-    background: rgba(255, 255, 255, 0.1);
-    padding: 30px 35px;
-    border-radius: 16px;
-    box-shadow: 0 12px 30px rgba(0,0,0,0.5);
-    width: 420px;
-    max-width: 90vw;
-  }
-
-  h2 {
-    margin-top: 0;
-    margin-bottom: 25px;
-    font-size: 28px;
-    font-weight: 700;
-    color: #a8fff1;
-    text-align: center;
-  }
-
-  label {
-    display: block;
-    margin-bottom: 6px;
-    font-weight: 600;
-    font-size: 14px;
-    color: #d0f0f6;
-  }
-
-  input[type="text"],
-  input[type="email"],
-  input[type="password"],
-  textarea {
-    width: 100%;
-    padding: 10px 14px;
-    margin-bottom: 15px;
-    border-radius: 10px;
-    border: none;
-    background: rgba(255, 255, 255, 0.2);
-    color: #e6f1ff;
-    font-size: 15px;
-    outline: none;
-    transition: background 0.3s ease, box-shadow 0.3s ease;
-    font-family: inherit;
-    resize: vertical;
-  }
-
-  input:focus, textarea:focus {
-    background: rgba(255, 255, 255, 0.35);
-    box-shadow: 0 0 10px 3px rgba(34, 193, 195, 0.7);
-  }
-
-  textarea { min-height: 70px; }
-
-  button {
-    width: 100%;
-    padding: 14px;
-    background: #22c1c3;
-    border: none;
-    border-radius: 12px;
-    color: white;
-    font-size: 18px;
-    font-weight: 700;
-    cursor: pointer;
-    transition: background 0.3s ease, box-shadow 0.3s ease;
-  }
-
-  button:hover {
-    background: #1fa9a9;
-    box-shadow: 0 5px 15px rgba(31, 169, 169, 0.7);
-  }
-
-  .login-link {
-    text-align: center;
-    margin-top: 18px;
-    font-size: 14px;
-    color: #a8fff1;
-  }
-
-  .login-link a {
-    color: #22c1c3;
-    font-weight: 600;
-    text-decoration: none;
-  }
-
-  .error-message, .success-message {
-    padding: 12px;
-    border-radius: 12px;
-    margin-bottom: 15px;
-    font-weight: 600;
-    text-align: center;
-    font-size: 14px;
-  }
-
-  .error-message { background: rgba(255, 0, 0, 0.25); color: #ff4949; }
-  .success-message { background: rgba(0, 255, 0, 0.25); color: #00ff99; }
-
-  @media (max-width: 450px) {
-    .register-form { width: 95vw; padding: 25px 20px; }
-  }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hospital Registration - <?php echo SITE_NAME; ?></title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .register-container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+            max-width: 600px;
+            width: 100%;
+            animation: fadeIn 0.5s ease;
+        }
+        
+        .register-header {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            padding: 40px 30px;
+            text-align: center;
+        }
+        
+        .register-header h1 {
+            font-size: 2rem;
+            margin-bottom: 5px;
+        }
+        
+        .register-header p {
+            opacity: 0.9;
+            font-size: 0.95rem;
+        }
+        
+        .register-body {
+            padding: 40px 30px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #334155;
+            font-weight: 500;
+            font-size: 0.95rem;
+        }
+        
+        .form-group input, .form-group textarea {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            font-family: 'Inter', sans-serif;
+        }
+        
+        .form-group input:focus, .form-group textarea:focus {
+            outline: none;
+            border-color: #10b981;
+            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+        }
+        
+        .error-messages {
+            background: #fee2e2;
+            color: #dc2626;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            border-left: 4px solid #dc2626;
+        }
+        
+        .error-messages ul {
+            margin-left: 20px;
+        }
+        
+        .btn-register {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-register:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(16, 185, 129, 0.3);
+        }
+        
+        .login-link {
+            text-align: center;
+            margin-top: 20px;
+        }
+        
+        .login-link a {
+            color: #10b981;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        
+        .back-link {
+            text-align: center;
+            margin-top: 15px;
+        }
+        
+        .back-link a {
+            color: #64748b;
+            text-decoration: none;
+            font-size: 0.9rem;
+        }
+        
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
 </head>
-
 <body>
-
-<div class="register-form">
-  <h2>Hospital Registration</h2>
-
-  <?php if ($error): ?>
-    <div class="error-message"><?= htmlspecialchars($error) ?></div>
-  <?php endif; ?>
-
-  <?php if ($success): ?>
-    <div class="success-message"><?= $success ?></div>
-  <?php endif; ?>
-
-  <form method="POST" action="">
-    
-    <label for="hospital_name">Hospital Name</label>
-    <input type="text" id="hospital_name" name="hospital_name" required />
-
-    <label for="address">Address</label>
-    <textarea id="address" name="address" required></textarea>
-
-    <label for="location">Location</label>
-    <input type="text" id="location" name="location" />
-
-    <label for="email">Email</label>
-    <input type="email" id="email" name="email" required />
-
-    <label for="password">Password</label>
-    <input type="password" id="password" name="password" required />
-
-    <button type="submit">Register</button>
-  </form>
-
-  <p class="login-link">
-    Already have an account? <a href="../auth/hospital_login.php">Login here</a>
-  </p>
-</div>
-
+    <div class="register-container">
+        <div class="register-header">
+            <h1>🏥 Hospital Registration</h1>
+            <p>Join our vaccination network</p>
+        </div>
+        
+        <div class="register-body">
+            <?php if (!empty($errors)): ?>
+                <div class="error-messages">
+                    <strong>Please fix the following errors:</strong>
+                    <ul>
+                        <?php foreach ($errors as $error): ?>
+                            <li><?php echo $error; ?></li>
+                        <?php endforeach; ?>
+                    </ul>
+                </div>
+            <?php endif; ?>
+            
+            <form method="POST" action="">
+                <div class="form-group">
+                    <label for="hospital_name">Hospital Name *</label>
+                    <input type="text" id="hospital_name" name="hospital_name" value="<?php echo htmlspecialchars($_POST['hospital_name'] ?? ''); ?>" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="email">Email Address *</label>
+                    <input type="email" id="email" name="email" value="<?php echo htmlspecialchars($_POST['email'] ?? ''); ?>" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="password">Password *</label>
+                    <input type="password" id="password" name="password" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="confirm_password">Confirm Password *</label>
+                    <input type="password" id="confirm_password" name="confirm_password" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="phone">Phone Number *</label>
+                    <input type="tel" id="phone" name="phone" value="<?php echo htmlspecialchars($_POST['phone'] ?? ''); ?>" placeholder="03001234567" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="address">Address *</label>
+                    <textarea id="address" name="address" rows="2" required><?php echo htmlspecialchars($_POST['address'] ?? ''); ?></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label for="location">Location/City *</label>
+                    <input type="text" id="location" name="location" value="<?php echo htmlspecialchars($_POST['location'] ?? ''); ?>" required>
+                </div>
+                
+                <button type="submit" class="btn-register">Register Hospital</button>
+            </form>
+            
+            <div class="login-link">
+                Already registered? <a href="login.php">Login here</a>
+            </div>
+            
+            <div class="back-link">
+                <a href="../index.php">← Back to Home</a>
+            </div>
+        </div>
+    </div>
 </body>
 </html>

@@ -1,18 +1,28 @@
 <?php
 session_start();
 
-// Sabhi session variables clear karo
-$_SESSION = [];
+// Determine redirect location based on role
+$redirect_url = '../index.php';
 
-// Session destroy karo
+if (isset($_SESSION['role'])) {
+    switch ($_SESSION['role']) {
+        case 'admin':
+            $redirect_url = '../admin-secure-portal/login.php';
+            break;
+        case 'parent':
+            $redirect_url = '../parent/login.php';
+            break;
+        case 'hospital':
+            $redirect_url = '../hospital/login.php';
+            break;
+    }
+}
+
+// Clear all session data
+session_unset();
 session_destroy();
 
-// Browser cache disable (security ke liye)
-header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
-header("Pragma: no-cache");
-
-// Login selection page par redirect
-header("Location: ../index.php");
+// Redirect to appropriate login page
+header("Location: " . $redirect_url);
 exit();
 ?>
-
